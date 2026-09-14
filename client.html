@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Making API - Client</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    textarea, input[type="text"], input[type="number"], input[type="file"], select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-generate:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status-box {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      display: none;
+    }
+
+    .status-box.show {
+      display: block;
+    }
+
+    .status-box.success {
+      border-left-color: #28a745;
+      background: #d4edda;
+    }
+
+    .status-box.error {
+      border-left-color: #dc3545;
+      background: #f8d7da;
+    }
+
+    .status-box.loading {
+      border-left-color: #ffc107;
+      background: #fff3cd;
+    }
+
+    .status-text {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .video-preview {
+      margin-top: 20px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .video-preview video {
+      width: 100%;
+      height: auto;
+    }
+
+    .download-btn {
+      margin-top: 10px;
+      background: #28a745;
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .download-btn:hover {
+      background: #218838;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎬 Video Making API</h1>
+
+    <form id="videoForm">
+      <!-- Prompt Input -->
+      <div class="form-group">
+        <label for="prompt">📝 Prompt (Description)</label>
+        <textarea id="prompt" placeholder="Describe the video you want to generate..." required>A beautiful sunset over mountains with birds flying</textarea>
+      </div>
+
+      <!-- Duration -->
+      <div class="form-group">
+        <label for="duration">⏱️ Duration (seconds)</label>
+        <input type="number" id="duration" min="5" max="60" value="10" required>
+      </div>
+
+      <!-- FPS -->
+      <div class="form-group">
+        <label for="fps">🎬 FPS</label>
+        <input type="number" id="fps" min="24" max="60" value="24" required>
+      </div>
+
+      <!-- Resolution -->
+      <div class="form-group">
+        <label for="resolution">📐 Resolution</label>
+        <select id="resolution">
+          <option value="1280x720">720p (1280x720)</option>
+          <option value="1920x1080">1080p (1920x1080)</option>
+        </select>
+      </div>
+
+      <!-- Media Upload (Optional) -->
+      <div class="form-group">
+        <label for="mediaFiles">📸 Media Files (Optional - Images/Videos)</label>
+        <input type="file" id="mediaFiles" multiple accept="image/*,video/*">
+        <small style="color: #999; margin-top: 5px; display: block;">Upload images or videos to use in your video</small>
+      </div>
+
+      <!-- Buttons -->
+      <div class="button-group">
+        <button type="button" class="btn-generate" id="generateBtn" onclick="generateVideo()">Generate Video</button>
+      </div>
+    </form>
+
+    <!-- Status Box -->
+    <div class="status-box" id="statusBox">
+      <div class="status-text" id="statusText"></div>
+      <div class="video-preview" id="videoPreview" style="display: none;">
+        <video id="videoPlayer" controls></video>
+        <a class="download-btn" id="downloadLink" target="_blank">📥 Download Video</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000'; // Change to your server URL
+
+    async function generateVideo() {
+      const prompt = document.getElementById('prompt').value;
+      const duration = document.getElementById('duration').value;
+      const fps = document.getElementById('fps').value;
+      const resolution = document.getElementById('resolution').value;
+      const mediaFiles = document.getElementById('mediaFiles').files;
+
+      if (!prompt.trim()) {
+        alert('❌ Please enter a prompt');
+        return;
+      }
+
+      const statusBox = document.getElementById('statusBox');
+      const statusText = document.getElementById('statusText');
+      const generateBtn = document.getElementById('generateBtn');
+
+      try {
+        generateBtn.disabled = true;
+        statusBox.className = 'status-box show loading';
+        statusText.innerHTML = '<span class="loading-spinner"></span>Sending request...';
+
+        let response;
+
+        if (mediaFiles.length > 0) {
+          // Upload with media files
+          const formData = new FormData();
+          formData.append('prompt', prompt);
+          formData.append('duration', duration);
+          formData.append('fps', fps);
+          formData.append('textColor', '#ffffff');
+
+          for (let file of mediaFiles) {
+            formData.append('media', file);
+          }
+
+          response = await fetch(`${API_URL}/api/generate-with-media`, {
+            method: 'POST',
+            body: formData
+          });
+        } else {
+          // Generate from prompt only
+          response = await fetch(`${API_URL}/api/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt,
+              duration,
+              fps,
+              resolution
+            })
+          });
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Generation failed');
+        }
+
+        statusText.innerHTML = '<span class="loading-spinner"></span>Video generation started...';
+        console.log('Job ID:', data.jobId);
+
+        // Poll for completion
+        pollVideoStatus(data.jobId, data.checkStatusUrl);
+
+      } catch (error) {
+        statusBox.className = 'status-box show error';
+        statusText.innerHTML = `❌ Error: ${error.message}`;
+        generateBtn.disabled = false;
+      }
+    }
+
+    async function pollVideoStatus(jobId, statusUrl) {
+      const statusBox = document.getElementById('statusBox');
+      const statusText = document.getElementById('statusText');
+      const generateBtn = document.getElementById('generateBtn');
+      const videoPreview = document.getElementById('videoPreview');
+      const videoPlayer = document.getElementById('videoPlayer');
+      const downloadLink = document.getElementById('downloadLink');
+
+      let attempts = 0;
+      const maxAttempts = 120; // 10 minutes
+
+      const poll = async () => {
+        try {
+          const response = await fetch(statusUrl);
+          const data = await response.json();
+
+          if (data.status === 'COMPLETED') {
+            statusBox.className = 'status-box show success';
+            statusText.innerHTML = `✅ Video ready! (${data.fileSize})`;
+
+            videoPlayer.src = data.videoUrl;
+            downloadLink.href = data.downloadUrl;
+            videoPreview.style.display = 'block';
+
+            generateBtn.disabled = false;
+            return;
+          }
+
+          statusText.innerHTML = `<span class="loading-spinner"></span>⏳ Processing... (${attempts}s)`;
+          attempts++;
+
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 1000);
+          } else {
+            statusBox.className = 'status-box show error';
+            statusText.innerHTML = '❌ Timeout: Video generation took too long';
+            generateBtn.disabled = false;
+          }
+        } catch (error) {
+          statusBox.className = 'status-box show error';
+          statusText.innerHTML = `❌ Status check error: ${error.message}`;
+          generateBtn.disabled = false;
+        }
+      };
+
+      poll();
+    }
+  </script>
+</body>
+</html>
